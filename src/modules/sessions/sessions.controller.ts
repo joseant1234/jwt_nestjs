@@ -5,6 +5,8 @@ import { AuthService } from '../auth/auth.service';
 import { SessionsDtoReq } from './dto/sessions.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
+import { GoogleAuthGuard } from '../../guards/google-auth.guard';
+import { IAuth } from '../auth/interfaces/auth.interface';
 
 @ApiBearerAuth()
 @Controller('api/v1/sessions')
@@ -12,9 +14,19 @@ export class SessionsController {
   constructor(private authService: AuthService) {}
 
   @UseGuards(LocalAuthGuard)
-  @Post('')
+  @Post()
   async login(@Body() data: SessionsDtoReq, @Req() req:Request) {
-    return this.authService.login(req.user);
+    return this.authService.login(req.user as IAuth);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleLogin(@Req() req) { }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  googleAuthRedirect(@Req() req: Request) {
+    return this.authService.googleLogin(req.user as IAuth)
   }
 
   @UseGuards(JwtAuthGuard)
@@ -22,4 +34,5 @@ export class SessionsController {
   getProfile(@Req() req: Request) {
     return req.user;
   }
+
 }
